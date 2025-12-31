@@ -23,10 +23,12 @@ async function testConnection() {
     console.log("Testing Neon database connection...");
     
     // Test 1: Simple query
-    const result = await sql`SELECT NOW() as current_time, version() as pg_version`;
+    const result = await sql`SELECT NOW() as current_time, version() as pg_version` as any[];
     console.log("✅ Connection successful!");
-    console.log("Current time:", result[0].current_time);
-    console.log("PostgreSQL version:", result[0].pg_version.split(" ")[0] + " " + result[0].pg_version.split(" ")[1]);
+    if (Array.isArray(result) && result.length > 0) {
+      console.log("Current time:", result[0].current_time);
+      console.log("PostgreSQL version:", result[0].pg_version.split(" ")[0] + " " + result[0].pg_version.split(" ")[1]);
+    }
     
     // Test 2: Check if table exists
     const tableCheck = await sql`
@@ -34,14 +36,16 @@ async function testConnection() {
         SELECT FROM information_schema.tables 
         WHERE table_name = 'file_jobs'
       ) as table_exists
-    `;
+    ` as any[];
     
-    if (tableCheck[0].table_exists) {
+    if (Array.isArray(tableCheck) && tableCheck.length > 0 && tableCheck[0].table_exists) {
       console.log("✅ file_jobs table exists");
       
       // Test 3: Count records
-      const count = await sql`SELECT COUNT(*) as count FROM file_jobs`;
-      console.log(`📊 Total file jobs: ${count[0].count}`);
+      const count = await sql`SELECT COUNT(*) as count FROM file_jobs` as any[];
+      if (Array.isArray(count) && count.length > 0) {
+        console.log(`📊 Total file jobs: ${count[0].count}`);
+      }
     } else {
       console.log("⚠️  file_jobs table does not exist yet");
       console.log("   Run: npx tsx scripts/init-db.ts to create it");
