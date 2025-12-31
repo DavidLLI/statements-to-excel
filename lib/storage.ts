@@ -62,9 +62,9 @@ export async function getFileJob(id: string): Promise<FileJob | null> {
     FROM file_jobs
     WHERE id = ${id}
     LIMIT 1
-  `;
+  ` as any[];
   
-  if (result.length === 0) {
+  if (!Array.isArray(result) || result.length === 0) {
     return null;
   }
   
@@ -132,7 +132,11 @@ export async function getUserFileJobs(userId: string): Promise<FileJob[]> {
     FROM file_jobs
     WHERE user_id = ${userId}
     ORDER BY created_at DESC
-  `;
+  ` as any[];
+  
+  if (!Array.isArray(result)) {
+    return [];
+  }
   
   return result.map((row: any) => ({
     id: row.id,
@@ -161,7 +165,11 @@ export async function getAllJobs(): Promise<FileJob[]> {
       updated_at as "updatedAt"
     FROM file_jobs
     ORDER BY created_at DESC
-  `;
+  ` as any[];
+  
+  if (!Array.isArray(result)) {
+    return [];
+  }
   
   return result.map((row: any) => ({
     id: row.id,
