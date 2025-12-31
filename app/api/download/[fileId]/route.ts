@@ -53,7 +53,9 @@ export async function GET(
       : `${baseFilename}_full.xlsx`;
 
     // Return Excel file
-    return new NextResponse(buffer, {
+    // Convert Buffer to Uint8Array for NextResponse compatibility
+    const uint8Array = new Uint8Array(buffer);
+    return new NextResponse(uint8Array, {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
