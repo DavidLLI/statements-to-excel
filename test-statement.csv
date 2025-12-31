@@ -1,0 +1,6 @@
+Date,Asset,Type,Quantity,Price,Amount,Currency
+2024-01-15,Apple Inc,Buy,10,150.00,1500.00,USD
+2024-01-20,Microsoft Corp,Buy,5,300.00,1500.00,USD
+2024-02-01,Apple Inc,Dividend,10,2.50,25.00,USD
+2024-02-15,Microsoft Corp,Sell,2,320.00,640.00,USD
+
