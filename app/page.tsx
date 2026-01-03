@@ -42,7 +42,7 @@ export default function LandingPage() {
           return;
         }
 
-        const cookieJobIds = JSON.parse(cookieValue.split("=")[1] || "[]");
+        const cookieJobIds = JSON.parse(decodeURIComponent(cookieValue.split("=")[1] || "[]"));
 
         if (cookieJobIds.length === 0) {
           setMigrationCompleted(true);

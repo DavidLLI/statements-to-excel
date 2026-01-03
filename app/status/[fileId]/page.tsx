@@ -31,8 +31,11 @@ export default function StatusPage() {
     if (!fileId) return;
 
     let intervalId: NodeJS.Timeout | null = null;
+    let shouldContinuePolling = true;
 
     const fetchStatus = async () => {
+      if (!shouldContinuePolling) return;
+
       try {
         const response = await fetch(`/api/status/${fileId}`);
         if (!response.ok) {
@@ -44,16 +47,16 @@ export default function StatusPage() {
 
         // Stop polling if completed or failed
         if (data.status === "completed" || data.status === "failed") {
+          shouldContinuePolling = false;
           if (intervalId) {
             clearInterval(intervalId);
+            intervalId = null;
           }
         }
       } catch (error) {
         console.error("Status fetch error:", error);
         setLoading(false);
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
+        // Don't stop polling on error, keep trying
       }
     };
 
@@ -61,9 +64,14 @@ export default function StatusPage() {
     fetchStatus();
 
     // Poll every 3 seconds
-    intervalId = setInterval(fetchStatus, 3000);
+    intervalId = setInterval(() => {
+      if (shouldContinuePolling) {
+        fetchStatus();
+      }
+    }, 3000);
 
     return () => {
+      shouldContinuePolling = false;
       if (intervalId) {
         clearInterval(intervalId);
       }

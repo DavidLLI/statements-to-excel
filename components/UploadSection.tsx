@@ -14,6 +14,10 @@ export default function UploadSection() {
   const [uploadedFiles, setUploadedFiles] = useState<FileJob[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(true);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const pollingRef = useRef<{ shouldContinue: boolean; intervalId: NodeJS.Timeout | null }>({
+    shouldContinue: true,
+    intervalId: null,
+  });
 
   // Track section view on mount
   useEffect(() => {
@@ -34,14 +38,44 @@ export default function UploadSection() {
     }
   }, []);
 
-  // Fetch uploaded files on mount
+  // Fetch uploaded files on mount and poll for updates
   useEffect(() => {
-    const fetchFiles = async () => {
+    const fetchFiles = async (showLoading = false) => {
+      if (!pollingRef.current.shouldContinue) return;
+
+      if (showLoading) {
+        setLoadingFiles(true);
+      }
       try {
         const response = await fetch("/api/files");
         if (response.ok) {
           const data = await response.json();
           setUploadedFiles(data.jobs || []);
+          
+          // Stop polling if all files are completed or failed (but only if there are files)
+          if (data.jobs.length > 0) {
+            const allFinished = data.jobs.every(
+              (job: FileJob) => job.status === "completed" || job.status === "failed"
+            );
+            if (allFinished) {
+              pollingRef.current.shouldContinue = false;
+              if (pollingRef.current.intervalId) {
+                clearInterval(pollingRef.current.intervalId);
+                pollingRef.current.intervalId = null;
+              }
+            } else {
+              // If there are files still processing, ensure polling continues
+              pollingRef.current.shouldContinue = true;
+              // Restart polling if it was stopped
+              if (!pollingRef.current.intervalId) {
+                pollingRef.current.intervalId = setInterval(() => {
+                  if (pollingRef.current.shouldContinue) {
+                    fetchFiles(false);
+                  }
+                }, 3000);
+              }
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to fetch files:", err);
@@ -50,7 +84,23 @@ export default function UploadSection() {
       }
     };
 
-    fetchFiles();
+    // Initial fetch
+    fetchFiles(true);
+
+    // Poll for updates every 3 seconds
+    pollingRef.current.intervalId = setInterval(() => {
+      if (pollingRef.current.shouldContinue) {
+        fetchFiles(false);
+      }
+    }, 3000);
+
+    return () => {
+      pollingRef.current.shouldContinue = false;
+      if (pollingRef.current.intervalId) {
+        clearInterval(pollingRef.current.intervalId);
+        pollingRef.current.intervalId = null;
+      }
+    };
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,11 +141,47 @@ export default function UploadSection() {
 
       const data = await response.json();
 
+      // The server already sets the cookie in the response, but we'll also update it client-side
+      // to ensure it's immediately available for the next request
+      const cookieValue = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("uploaded_file_ids="));
+      let existingIds: string[] = [];
+      
+      try {
+        if (cookieValue) {
+          const cookiePart = cookieValue.split("=").slice(1).join("="); // Handle cases where = is in the value
+          existingIds = JSON.parse(decodeURIComponent(cookiePart));
+        }
+      } catch (e) {
+        console.warn("Failed to parse existing cookie, starting fresh:", e);
+        existingIds = [];
+      }
+      
+      if (!existingIds.includes(data.jobId)) {
+        existingIds.push(data.jobId);
+        const recentIds = existingIds.slice(-50);
+        // URL encode the cookie value
+        const encodedValue = encodeURIComponent(JSON.stringify(recentIds));
+        document.cookie = `uploaded_file_ids=${encodedValue}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      }
+
       // Track completion
       trackEvent("upload_completed", {
         file_type: file.type || "unknown",
         file_size: file.size,
       });
+
+      // Optimistically add the new file to the list immediately
+      const optimisticJob: FileJob = {
+        id: data.jobId,
+        userId: user?.id || "anonymous",
+        filename: file.name,
+        status: "uploaded",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setUploadedFiles((prev) => [optimisticJob, ...prev]);
 
       // Reset file selection
       setFile(null);
@@ -104,14 +190,46 @@ export default function UploadSection() {
         fileInput.value = "";
       }
 
-      // Refresh file list
+      // Refresh file list immediately and restart polling if needed
       setLoadingFiles(true);
-      const filesResponse = await fetch("/api/files");
-      if (filesResponse.ok) {
-        const filesData = await filesResponse.json();
-        setUploadedFiles(filesData.jobs || []);
-      }
-      setLoadingFiles(false);
+      
+      // Small delay to ensure cookie is set before fetching
+      setTimeout(async () => {
+        const filesResponse = await fetch("/api/files");
+        if (filesResponse.ok) {
+          const filesData = await filesResponse.json();
+          setUploadedFiles(filesData.jobs || []);
+          
+          // Restart polling if it was stopped (new file is processing)
+          pollingRef.current.shouldContinue = true;
+          if (!pollingRef.current.intervalId) {
+            pollingRef.current.intervalId = setInterval(async () => {
+              if (pollingRef.current.shouldContinue) {
+                const response = await fetch("/api/files");
+                if (response.ok) {
+                  const data = await response.json();
+                  setUploadedFiles(data.jobs || []);
+                  
+                  // Check if we should stop polling
+                  if (data.jobs.length > 0) {
+                    const allFinished = data.jobs.every(
+                      (job: FileJob) => job.status === "completed" || job.status === "failed"
+                    );
+                    if (allFinished) {
+                      pollingRef.current.shouldContinue = false;
+                      if (pollingRef.current.intervalId) {
+                        clearInterval(pollingRef.current.intervalId);
+                        pollingRef.current.intervalId = null;
+                      }
+                    }
+                  }
+                }
+              }
+            }, 3000);
+          }
+        }
+        setLoadingFiles(false);
+      }, 100);
 
       setUploading(false);
     } catch (err) {
