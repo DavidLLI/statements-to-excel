@@ -11,7 +11,7 @@ const sampleData: ExtractionResult = {
   holdings: [
     {
       asset_name: "Apple Inc.",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 100,
       unit_price: 175.50,
       currency: "USD",
@@ -20,7 +20,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "Microsoft Corporation",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 50,
       unit_price: 380.25,
       currency: "USD",
@@ -29,7 +29,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "Amazon.com Inc.",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 75,
       unit_price: 152.30,
       currency: "USD",
@@ -38,7 +38,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "Vanguard S&P 500 ETF",
-      asset_type: "ETF",
+      asset_type: "Fund",
       quantity: 200,
       unit_price: 425.80,
       currency: "USD",
@@ -47,7 +47,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "Tesla Inc.",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 25,
       unit_price: 248.90,
       currency: "USD",
@@ -56,7 +56,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "Alphabet Inc. Class A",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 30,
       unit_price: 142.50,
       currency: "USD",
@@ -65,7 +65,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "NVIDIA Corporation",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 40,
       unit_price: 495.20,
       currency: "USD",
@@ -74,7 +74,7 @@ const sampleData: ExtractionResult = {
     },
     {
       asset_name: "Meta Platforms Inc.",
-      asset_type: "Stock",
+      asset_type: "Equity",
       quantity: 60,
       unit_price: 485.75,
       currency: "USD",
@@ -194,7 +194,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-01-15",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -18520.00,
       currency: "USD",
       running_balance: 31480.00,
@@ -202,7 +202,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-02-10",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -19775.00,
       currency: "USD",
       running_balance: 11705.00,
@@ -218,7 +218,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-03-05",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -13417.50,
       currency: "USD",
       running_balance: 18287.50,
@@ -226,7 +226,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-04-12",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -82050.00,
       currency: "USD",
       running_balance: -63762.50,
@@ -242,7 +242,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-05-20",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -6632.50,
       currency: "USD",
       running_balance: 29605.00,
@@ -250,7 +250,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-06-08",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -4674.00,
       currency: "USD",
       running_balance: 24931.00,
@@ -258,7 +258,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-07-15",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -20800.00,
       currency: "USD",
       running_balance: 4131.00,
@@ -266,7 +266,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-08-22",
-      type: "Purchase",
+      type: "Withdrawal",
       amount: -28530.00,
       currency: "USD",
       running_balance: -24399.00,
@@ -282,7 +282,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-09-10",
-      type: "Dividend",
+      type: "Distribution",
       amount: 240.00,
       currency: "USD",
       running_balance: 25841.00,
@@ -290,7 +290,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-10-05",
-      type: "Dividend",
+      type: "Distribution",
       amount: 140.00,
       currency: "USD",
       running_balance: 25981.00,
@@ -298,7 +298,7 @@ const sampleData: ExtractionResult = {
     },
     {
       date: "2024-11-18",
-      type: "Dividend",
+      type: "Distribution",
       amount: 320.00,
       currency: "USD",
       running_balance: 26301.00,
